@@ -1659,10 +1659,11 @@ public class OnHeapStore<K, V> extends BaseStore<K, V> implements HigherCachingT
       SizeOfEngineProvider sizeOfEngineProvider = getServiceProvider().getService(SizeOfEngineProvider.class);
       SizeOfEngine sizeOfEngine = sizeOfEngineProvider.createSizeOfEngine(
           storeConfig.getResourcePools().getPoolForResource(ResourceType.Core.HEAP).getUnit(), serviceConfigs);
-      OnHeapStore<K, V> onHeapStore = new OnHeapStore<>(storeConfig, timeSource, keyCopier, valueCopier, sizeOfEngine, eventDispatcher, ConcurrentHashMap::new, getServiceProvider().getService(StatisticsService.class));
+      Supplier<EvictingConcurrentMap<?, ?>> backingMapSupplier = ConcurrentHashMap::new;
+      OnHeapStore<K, V> onHeapStore = new OnHeapStore<>(storeConfig, timeSource, keyCopier, valueCopier, sizeOfEngine, eventDispatcher, backingMapSupplier, getServiceProvider().getService(StatisticsService.class));
       createdStores.put(onHeapStore, copiers);
       return onHeapStore;
-    }
+    } 
 
     @Override
     public void releaseStore(Store<?, ?> resource) {

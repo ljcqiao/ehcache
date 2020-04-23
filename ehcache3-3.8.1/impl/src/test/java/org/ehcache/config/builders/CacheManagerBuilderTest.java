@@ -16,6 +16,7 @@
 
 package org.ehcache.config.builders;
 
+import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.PersistentCacheManager;
 import org.ehcache.config.CacheConfiguration;
@@ -29,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -113,4 +115,32 @@ public class CacheManagerBuilderTest {
 
     assertThat(build.getRuntimeConfiguration().getCacheConfigurations().get(cacheAlias).getKeyType()).isEqualTo(Long.class);
   }
+  /**
+   * 测试ehcache 到期机制
+   * @throws InterruptedException
+   */
+	@Test
+	public void expiryTest() throws InterruptedException {
+		CacheManager cacheManager  = null;
+		try {
+			cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
+					.withCache("preConfigured", CacheConfigurationBuilder
+							.newCacheConfigurationBuilder(Long.class, String.class, ResourcePoolsBuilder.heap(10))
+							.withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(20))))
+					.build();
+			cacheManager.init();
+			Cache<Long, String> preConfigured = cacheManager.getCache("preConfigured", Long.class, String.class);
+			
+			preConfigured.put(1L, "hello");
+			System.out.println(preConfigured.get(1L));
+			System.out.println(preConfigured.get(1L));
+			cacheManager.removeCache("preConfigured");
+		} catch (Exception ex) {
+
+		} finally {
+			cacheManager.close();
+			System.out.println("over");
+		}
+	}
+
 }

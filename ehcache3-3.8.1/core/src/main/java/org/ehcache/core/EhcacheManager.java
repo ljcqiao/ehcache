@@ -316,7 +316,7 @@ public class EhcacheManager implements PersistentCacheManager, InternalCacheMana
         unknownServiceConfigs.add(serviceConfig);
       }
     }
-    if (!unknownServiceConfigs.isEmpty()) {
+    if (!unknownServiceConfigs.isEmpty()) { 
       throw new IllegalStateException("Cannot find service(s) that can handle following configuration(s) : " + unknownServiceConfigs);
     }
 
@@ -569,7 +569,7 @@ public class EhcacheManager implements PersistentCacheManager, InternalCacheMana
 
   /**
    * {@inheritDoc}
-   */
+   */ 
   @Override
   public void init() {
     final StatusTransitioner.Transition st = statusTransitioner.init();

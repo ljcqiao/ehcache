@@ -63,7 +63,7 @@ public class CacheConfigurationBuilderTest {
 
     CacheConfiguration<Object, Object> cacheConfiguration = newCacheConfigurationBuilder(Object.class, Object.class, heap(10))
         .withEvictionAdvisor(evictionAdvisor)
-        .build();
+        .build(); 
 
     @SuppressWarnings("unchecked")
     Matcher<EvictionAdvisor<Object, Object>> evictionAdvisorMatcher = sameInstance(cacheConfiguration
