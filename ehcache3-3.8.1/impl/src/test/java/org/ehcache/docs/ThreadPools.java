@@ -88,11 +88,14 @@ public class ThreadPools {
     // tag::writeBehind[]
     CacheManager cacheManager
         = CacheManagerBuilder.newCacheManagerBuilder()
+        //	配置线程池。请注意，由于没有默认值，因此所有线程使用服务都必须配置有明确的默认值。
         .using(PooledExecutionServiceConfigurationBuilder.newPooledExecutionServiceConfigurationBuilder() // <1>
             .defaultPool("dflt", 0, 10)
             .pool("defaultWriteBehindPool", 1, 3)
             .pool("cache2Pool", 2, 2)
             .build())
+        //告诉CacheManagerBuilder，在没有明确指定一个缓存池来执行CacheLoaderWriter写入任务时，  默认使用
+        //defaultWriteBehindPool
         .withDefaultWriteBehindThreadPool("defaultWriteBehindPool") // <2>
         .withCache("cache1",
             CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, String.class,
@@ -117,7 +120,9 @@ public class ThreadPools {
         cacheManager.getCache("cache1", Long.class, String.class);
     Cache<Long, String> cache2 =
         cacheManager.getCache("cache2", Long.class, String.class);
-
+    cache2.put(1L, "hello");
+    
+    cache2.get(1L);
     cacheManager.close();
     // end::writeBehind[]
   }
@@ -156,6 +161,32 @@ public class ThreadPools {
 
   private String getStoragePath() throws IOException {
     return diskPath.newFolder().getAbsolutePath();
+  }
+  
+  @Test
+  public void diskPoorTest() throws IOException {
+	  CacheManager cacheManager
+      = CacheManagerBuilder.newCacheManagerBuilder()
+      .using(PooledExecutionServiceConfigurationBuilder.newPooledExecutionServiceConfigurationBuilder() // <1>
+          .defaultPool("dflt", 0, 10)
+          .pool("defaultDiskPool", 1, 3)
+          .pool("cache2Pool", 2, 2)
+          .build())
+      .with(new CacheManagerPersistenceConfiguration(new File(getStoragePath(), "myData")))
+      .withDefaultDiskStoreThreadPool("defaultDiskPool") // <2>
+      .withCache("cache1",
+          CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, String.class,
+              ResourcePoolsBuilder.newResourcePoolsBuilder()
+                  .heap(10, EntryUnit.ENTRIES)
+                  .disk(10L, MemoryUnit.MB)))
+      
+      .build(true);
+
+  Cache<Long, String> cache1 =
+      cacheManager.getCache("cache1", Long.class, String.class);
+  cache1.put(1L, "hello");
+  
+  cacheManager.close();
   }
 
 }

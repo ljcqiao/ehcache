@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -252,6 +253,31 @@ public class GettingStarted {
         .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(20))) // <2>
         .build();
     // end::expiry[]
+  }
+  
+  @Test
+  public void expiryTest() throws InterruptedException {
+    // tag::cachemanagerExample[]
+    CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder() // <1>
+        .withCache("preConfigured",
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, String.class, ResourcePoolsBuilder.heap(10))
+            .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(20)))) // <2>
+        .build(); // <3>
+    cacheManager.init(); // <4>
+
+    Cache<Long, String> preConfigured =
+        cacheManager.getCache("preConfigured", Long.class, String.class); // <5>
+
+    Cache<Long, String> myCache = cacheManager.createCache("myCache", // <6>
+        CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, String.class, ResourcePoolsBuilder.heap(10)));
+
+    myCache.put(1L, "hello");
+	Thread.sleep(20 * 1000);
+	assertThat(preConfigured.get(1L));
+	cacheManager.removeCache("preConfigured");
+
+    cacheManager.close(); // <10>
+    // end::cachemanagerExample[]
   }
 
   @Test
